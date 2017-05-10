@@ -7,7 +7,12 @@ Instead, we wish to experiment with building a combined CNN-LSTM Neural Net mode
 
 ### Dependencies
 ```
-sudo -H pip install tensorflow
+sudo -H pip install -r requirements.txt
+```
+
+### Run the Code
+```
+python train.py
 ```
 
 
