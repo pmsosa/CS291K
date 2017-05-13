@@ -51,6 +51,7 @@ def get_dataset(goodfile,badfile,limit,randomize=True):
     x = good_x + bad_x
     x = [clean_str(s) for s in x]
 
+
     positive_labels = [[0, 1] for _ in good_x]
     negative_labels = [[1, 0] for _ in bad_x]
     y = np.concatenate([positive_labels, negative_labels], 0)
@@ -58,8 +59,36 @@ def get_dataset(goodfile,badfile,limit,randomize=True):
 
 
 
+
 #Clean Dataset
 def clean_str(string):
+
+
+    #EMOJIS
+    string = re.sub(r":\)","emojihappy1",string)
+    string = re.sub(r":P","emojihappy2",string)
+    string = re.sub(r":p","emojihappy3",string)
+    string = re.sub(r":>","emojihappy4",string)
+    string = re.sub(r":3","emojihappy5",string)
+    string = re.sub(r":D","emojihappy6",string)
+    string = re.sub(r" XD ","emojihappy7",string)
+    string = re.sub(r" <3 ","emojihappy8",string)
+
+    string = re.sub(r":\(","emojisad9",string)
+    string = re.sub(r":<","emojisad10",string)
+    string = re.sub(r":<","emojisad11",string)
+    string = re.sub(r">:\(","emojisad12",string)
+
+    #MENTIONS "(@)\w+"
+    string = re.sub(r"(@)\w+","mentiontoken",string)
+    
+    #WEBSITES
+    string = re.sub(r"http(s)*:(\S)*","linktoken",string)
+
+    #STRANGE UNICODE \x...
+    string = re.sub(r"\\x(\S)*","",string)
+
+    #General Cleanup and Symbols
     string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
     string = re.sub(r"\'s", " \'s", string)
     string = re.sub(r"\'ve", " \'ve", string)
@@ -73,30 +102,6 @@ def clean_str(string):
     string = re.sub(r"\)", " \) ", string)
     string = re.sub(r"\?", " \? ", string)
     string = re.sub(r"\s{2,}", " ", string)
-
-
-    # DEALING WITH TWITTER RELATED STUFF #
-
-    #EMOJIS
-    string = re.sub(r":\)","[HAPPY]",string)
-    string = re.sub(r":P","[HAPPY]",string)
-    string = re.sub(r":p","[HAPPY]",string)
-    string = re.sub(r":>","[HAPPY]",string)
-    string = re.sub(r":3","[HAPPY]",string)
-    string = re.sub(r":D","[HAPPY]",string)
-    string = re.sub(r" XD ","[HAPPY]",string)
-
-    string = re.sub(r":\(","[FROWN]",string)
-    string = re.sub(r":<","[FROWN]",string)
-    string = re.sub(r":<","[FROWN]",string)
-    string = re.sub(r">:\(","[FROWN]",string)
-
-    #MENTIONS "(@)\w+"
-
-    #WEBSITES
-
-    #STRANGE UNICODE \x...
-
 
     return string.strip().lower()
 

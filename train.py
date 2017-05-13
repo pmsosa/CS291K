@@ -1,12 +1,21 @@
 #! /usr/bin/env python
 
+#SELECT WHICH MODEL YOU WISH TO RUN:
+from cnn_lstm import CNN_LSTM   #OPTION 0
+from lstm_cnn import LSTM_CNN   #OPTION 1
+MODEL_TO_RUN = 1
+
+
+
+
+
+
 import tensorflow as tf
 import numpy as np
 import os
 import time
 import datetime
 import batchgen
-from cnn_lstm import CNN_LSTM
 from tensorflow.contrib import learn
 
 from IPython import embed
@@ -70,7 +79,7 @@ y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
 print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
 print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
 
-embed()
+#embed()
 
 
 # Training
@@ -81,12 +90,16 @@ with tf.Graph().as_default():
     sess = tf.Session(config=session_conf)
     with sess.as_default():
         #embed()
-        cnn = CNN_LSTM(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
+        if (MODEL_TO_RUN == 0):
+            model = CNN_LSTM(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
+        else:
+            model = LSTM_CNN(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
+
 
         # Define Training procedure
         global_step = tf.Variable(0, name="global_step", trainable=False)
         optimizer = tf.train.AdamOptimizer(1e-3)
-        grads_and_vars = optimizer.compute_gradients(cnn.loss)
+        grads_and_vars = optimizer.compute_gradients(model.loss)
         train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
         # Keep track of gradient values and sparsity (optional)
@@ -105,8 +118,8 @@ with tf.Graph().as_default():
         print("Writing to {}\n".format(out_dir))
 
         # Summaries for loss and accuracy
-        loss_summary = tf.summary.scalar("loss", cnn.loss)
-        acc_summary = tf.summary.scalar("accuracy", cnn.accuracy)
+        loss_summary = tf.summary.scalar("loss", model.loss)
+        acc_summary = tf.summary.scalar("accuracy", model.accuracy)
 
         # Train Summaries
         train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])
@@ -134,12 +147,12 @@ with tf.Graph().as_default():
         #TRAINING STEP
         def train_step(x_batch, y_batch,save=False):
             feed_dict = {
-              cnn.input_x: x_batch,
-              cnn.input_y: y_batch,
-              cnn.dropout_keep_prob: dropout_prob
+              model.input_x: x_batch,
+              model.input_y: y_batch,
+              model.dropout_keep_prob: dropout_prob
             }
             _, step, summaries, loss, accuracy = sess.run(
-                [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy],
+                [train_op, global_step, train_summary_op, model.loss, model.accuracy],
                 feed_dict)
             time_str = datetime.datetime.now().isoformat()
             print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
@@ -149,12 +162,12 @@ with tf.Graph().as_default():
         #EVALUATE MODEL
         def dev_step(x_batch, y_batch, writer=None,save=False):
             feed_dict = {
-              cnn.input_x: x_batch,
-              cnn.input_y: y_batch,
-              cnn.dropout_keep_prob: 0.5
+              model.input_x: x_batch,
+              model.input_y: y_batch,
+              model.dropout_keep_prob: 0.5
             }
             step, summaries, loss, accuracy = sess.run(
-                [global_step, dev_summary_op, cnn.loss, cnn.accuracy],
+                [global_step, dev_summary_op, model.loss, model.accuracy],
                 feed_dict)
             time_str = datetime.datetime.now().isoformat()
             print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
