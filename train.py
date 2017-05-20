@@ -1,13 +1,12 @@
 #! /usr/bin/env python
+import sys
 
 #SELECT WHICH MODEL YOU WISH TO RUN:
 from cnn_lstm import CNN_LSTM   #OPTION 0
 from lstm_cnn import LSTM_CNN   #OPTION 1
+from cnn import CNN             #OPTION 3 (Model by: Danny Britz)
+from lstm import LSTM           #OPTION 4
 MODEL_TO_RUN = 1
-
-
-
-
 
 
 import tensorflow as tf
@@ -36,7 +35,7 @@ l2_reg_lambda = 0.0
 
 # Training parameters
 batch_size = 64
-num_epochs = 3 #200
+num_epochs = 6 #200
 evaluate_every = 100 #100
 checkpoint_every = 100000 #100
 num_checkpoints = 0 #Checkpoints to store
@@ -92,8 +91,15 @@ with tf.Graph().as_default():
         #embed()
         if (MODEL_TO_RUN == 0):
             model = CNN_LSTM(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
-        else:
+        elif (MODEL_TO_RUN == 1):
             model = LSTM_CNN(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
+        elif (MODEL_TO_RUN == 2):
+            model = CNN(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim,filter_sizes,num_filters,l2_reg_lambda)
+        elif (MODEL_TO_RUN == 3):
+            model = LSTM(x_train.shape[1],y_train.shape[1],len(vocab_processor.vocabulary_),embedding_dim)
+        else:
+            print "PLEASE CHOOSE A VALID MODEL!\n0 = CNN_LSTM\n1 = LSTM_CNN\n2 = CNN\n3 = LSTM\n"
+            exit();
 
 
         # Define Training procedure
