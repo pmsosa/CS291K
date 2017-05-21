@@ -75,7 +75,7 @@ class LSTM_CNN(object):
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
 
 
-        print "(!!) LOADED CNN-LSTM! :)"
+        print "(!!) LOADED LSTM-CNN! :)"
         #embed()
 
 

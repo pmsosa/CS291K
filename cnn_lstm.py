@@ -40,8 +40,8 @@ class CNN_LSTM(object):
         self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
         
         #3. DROPOUT LAYER ###################################################################
-        # with tf.name_scope("dropout"):
-        #     self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
+        with tf.name_scope("dropout"):
+             self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
 
         #4. LSTM LAYER ######################################################################
         cell = tf.contrib.rnn.LSTMCell(num_hidden,state_is_tuple=True)

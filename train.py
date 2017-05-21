@@ -4,9 +4,9 @@ import sys
 #SELECT WHICH MODEL YOU WISH TO RUN:
 from cnn_lstm import CNN_LSTM   #OPTION 0
 from lstm_cnn import LSTM_CNN   #OPTION 1
-from cnn import CNN             #OPTION 3 (Model by: Danny Britz)
-from lstm import LSTM           #OPTION 4
-MODEL_TO_RUN = 1
+from cnn import CNN             #OPTION 2 (Model by: Danny Britz)
+from lstm import LSTM           #OPTION 3
+MODEL_TO_RUN = 0
 
 
 import tensorflow as tf
@@ -30,15 +30,17 @@ embedding_dim  = 32     #128
 max_seq_legth = 70 
 filter_sizes = [3,4,5]  #3
 num_filters = 32
-dropout_prob = 0.5
+dropout_prob = 0.5 #0.5
 l2_reg_lambda = 0.0
+use_glove = True #Do we use glove
 
 # Training parameters
-batch_size = 64
-num_epochs = 6 #200
+batch_size = 128
+num_epochs = 10 #200
 evaluate_every = 100 #100
 checkpoint_every = 100000 #100
 num_checkpoints = 0 #Checkpoints to store
+
 
 # Misc Parameters
 allow_soft_placement = True
@@ -61,8 +63,54 @@ x_text, y = batchgen.get_dataset(goodfile, badfile, 5000) #TODO: MAX LENGTH
 
 # Build vocabulary
 max_document_length = max([len(x.split(" ")) for x in x_text])
-vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
-x = np.array(list(vocab_processor.fit_transform(x_text)))
+if (not use_glove):
+    print "Not using GloVe"
+    vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
+    x = np.array(list(vocab_processor.fit_transform(x_text)))
+else:
+    print "Using GloVe"
+    embedding_dim = 50
+    filename = '../glove.6B.50d.txt'
+    def loadGloVe(filename):
+        vocab = []
+        embd = []
+        file = open(filename,'r')
+        for line in file.readlines():
+            row = line.strip().split(' ')
+            vocab.append(row[0])
+            embd.append(row[1:])
+        print('Loaded GloVe!')
+        file.close()
+        return vocab,embd
+    vocab,embd = loadGloVe(filename)
+    vocab_size = len(vocab)
+    embedding_dim = len(embd[0])
+    embedding = np.asarray(embd)
+
+    W = tf.Variable(tf.constant(0.0, shape=[vocab_size, embedding_dim]),
+                    trainable=False, name="W")
+    embedding_placeholder = tf.placeholder(tf.float32, [vocab_size, embedding_dim])
+    embedding_init = W.assign(embedding_placeholder)
+
+    session_conf = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
+    sess = tf.Session(config=session_conf)
+    sess.run(embedding_init, feed_dict={embedding_placeholder: embedding})
+
+    from tensorflow.contrib import learn
+    #init vocab processor
+    vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
+    #fit the vocab from glove
+    pretrain = vocab_processor.fit(vocab)
+    #transform inputs
+    x = np.array(list(vocab_processor.transform(x_text)))
+
+    #init vocab processor
+    vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
+    #fit the vocab from glove
+    pretrain = vocab_processor.fit(vocab)
+    #transform inputs
+    x = np.array(list(vocab_processor.transform(x_text)))
+
 
 # Randomly shuffle data
 np.random.seed(42)
@@ -196,3 +244,4 @@ with tf.Graph().as_default():
             if current_step % checkpoint_every == 0:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
                 print("Saved model checkpoint to {}\n".format(path))
+        dev_step(x_dev, y_dev, writer=dev_summary_writer)
