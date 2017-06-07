@@ -18,10 +18,10 @@ sudo -H pip install -r requirements.txt
 - Run ```python train.py``` (or, with proper permissions, ```./train.py```
 
 ### Code Structure ###
-- lstm_cnn.py : Contains the LSTM_CNN Model class to be instantiated.
-- cnn_lstm.py : Contains the CNN_LSTM Model class to be instantiated.
-- train.py : Main runner for the code. It instantiates a model, trains it and validates it.
-- batchgen.py : Contains a couple of functions needed to pre-process and tokenize the dataset.
+- [lstm_cnn.py](./lstm_cnn.py) : Contains the LSTM_CNN Model class to be instantiated.
+- [cnn_lstm.py](./cnn_lstm.py) : Contains the CNN_LSTM Model class to be instantiated.
+- [train.py](./train.py) : Main runner for the code. It instantiates a model, trains it and validates it.
+- [batchgen.py](./batchgen.py) : Contains a couple of functions needed to pre-process and tokenize the dataset.
 
 
 
